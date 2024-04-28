@@ -1,7 +1,10 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
+import os
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
 import time
 import pickle
 import sys
@@ -47,6 +50,50 @@ class AuthorTodayClass:
         self.login = grabber.login
         self.password = grabber.password
 
+    def My_library(self):
+        global texts_nameBook
+        global elements
+        self.driver_chrome.get('https://author.today')
+        print('my library')
+        #   TODO    Если есть куки
+        if self.Read_cookies():
+            self.driver_chrome.refresh()
+            print('Read_cookies')
+        #   TODO    Если нет, то проходим авторизацию и сохраняем куки
+        else:
+            #        driver.get('https://author.today')
+            #   TODO    Логинимся на сайте со своими учетными данными
+            self.Author_today_login()
+        time.sleep(2)
+        #   TODO    Кликаем по ссылке "моя библиотека"
+        try:
+            self.driver_chrome.find_element(By.PARTIAL_LINK_TEXT, 'Моя библиотека').click()
+        except IndexError as e1:
+            print('Error: ', e1)
+        #   TODO    Ищем наименования книг
+        try:
+            elements = self.driver_chrome.find_elements(By.CSS_SELECTOR, 'h4.bookcard-title')
+        except IndexError as e2:
+            print('Error: ', e2)
+        #   TODO    Заполняем именованный словарь наименованиями и ссылками на книги
+        for element in elements:
+            text = element.text
+            s = self.driver_chrome.find_element(By.LINK_TEXT, text)
+            s0 = str(s.get_attribute('href')).replace('work', 'reader')
+            print(text + ' - ', s0)
+            texts_nameBook[text] = s0
+        '''
+        grabber.url = texts_nameBook['Легенда о Лазаре 9. Враг моего врага']
+        self.driver_chrome.get(grabber.url)
+        self.driver_chrome.find_element(By.CSS_SELECTOR, 'button.btn.btn-brd.btn-with-icon.btn-only-icon-xs').click()
+        time.sleep(2)
+        self.driver_chrome.find_element(By.XPATH, '//li[text()="Глава 1"]').click()
+        cur_url = self.driver_chrome.current_url
+        print(cur_url)
+
+        time.sleep(2)
+'''
+
     def Read_cookies(self):
         # Загружаем куки с использованием pickle
         try:
@@ -55,8 +102,7 @@ class AuthorTodayClass:
                 for cookie in cookies:
                     self.driver_chrome.add_cookie(cookie)
             return True
-        except IndexError as e0:
-            print('Error: ', e0)
+        except:
             return False
 
     def Save_cookies(self):
@@ -66,7 +112,7 @@ class AuthorTodayClass:
         return True
 
     def Author_today_login(self):
-        #        driver.get('https://author.today')
+        self.driver_chrome.get('https://author.today')
         time.sleep(2)
         #   TODO    Логинимся на сайте со своими учетными данными
         try:
@@ -87,15 +133,64 @@ class AuthorTodayClass:
             self.Save_cookies()
 
             print('Enter')
-        #        driver.get(url)  # TODO    переходим на страницу книги
-        except IndexError as e1:
+            self.driver_chrome.get(grabber.url)  # TODO    переходим на страницу книги
+        except:
             #
-            print('Error login/Password: ', e1)
+            print('Error login/Password: ')
+
+    def Get_beginning_of_the_book(self):
+        '''
+        self.driver_chrome.get(grabber.url)
+        #   TODO    Если есть куки
+        if self.Read_cookies():
+            self.driver_chrome.refresh()
+            print('Read_cookies')
+        '''
+        while True:
+            try:
+                WebDriverWait(self.driver_chrome, 10).until(ec.presence_of_element_located((By.TAG_NAME, "html")))
+                new_page = self.driver_chrome.find_element(By.TAG_NAME, 'html')
+                a = self.driver_chrome.find_element(By.XPATH, '//li[@class="prev"]/a')
+#                print(a.text)
+                time.sleep(1)
+                a.click()
+            except:
+#                print('End book: ')
+                url = self.driver_chrome.current_url
+                return url
+            time.sleep(1)
 
     def Copy_Book(self):
         global text_button
         global text_elem
         print('Load Book')
+        self.Get_beginning_of_the_book()
+        '''
+        title = driver0.title.split(',')
+        title0 = title[0][6:]
+#       title0 = title0[6:]
+        author = title[2][1:]
+        h = author.find(' читать онлайн')
+        author = author[:h]
+        print(title0)
+        print(author)
+        #    out_file.write(title + '\n')
+        '''
+        '''
+        #   TODO    открываем боковое меню
+        driver0.find_element(By.CSS_SELECTOR, 'button.btn.btn-brd.btn-with-icon.btn-only-icon-xs').click()
+        time.sleep(1)
+        #   TODO    Получаем автора
+        try:
+            author0 = driver0.find_element(By.CSS_SELECTOR, 'div.book-author a')
+            print(str(author0.text))
+        except IndexError as e:
+            #
+            print('Error: ', e)
+        #   TODO    Обновляем страницу
+        driver0.refresh()
+        time.sleep(2)
+        '''
         #   TODO    копируем книгу по главам в цикле
         ch = True
         while ch:
@@ -177,21 +272,23 @@ class AuthorTodayClass:
         time.sleep(2)
         #   TODO    Если есть аргумент, то копируем книгу
         if len(sys.argv) == 1:
-            fb2 = TxtToFB2()
             self.Copy_Book()
+            fb2 = TxtToFB2()
             fb2.Fb2()
         else:
 #            Test0()
-            self.Copy_Book()
+#            self.Copy_Book()
+            print('xxxxxxxxxxxxxxx')
         #   TODO    выгружаем драйвер
         self.driver_chrome.quit()
 #   TODO    Класс преобразования полученного текстового файла в fb2
 class TxtToFB2:
     def __init__(self):
         self.tmp = open(grabber.tmp_file, 'w', encoding='utf-8')
+        self.fb2 = open(grabber.fb2_file_out, 'w', encoding='utf-8')
+        self.fb2_head = open('head.txt', 'r', encoding='utf-8').read()
         with open(grabber.file_name, 'r') as file:
             self.lines = file.readlines()
-        file.close()
 
     @staticmethod
     def text_to_str_of_index_multi(insert_text=None, string=None, text_to_find=None):
@@ -212,22 +309,32 @@ class TxtToFB2:
     def Fb2(self):
         y = 1
         for line in self.lines:
+            print(line)
             line = line.replace('\n', '')
             z = line.find('Глава ')
             if z == 0:
-                str_line = '<strong><p>' + line + '</p></strong>\n' if y % 2 == 0 else \
-                    '</section>\n<section><strong><title>' + line + '</title></strong>\n'
+                if y == 1:
+                    str_line = '\t<strong><p>' + line + '</p></strong>\n' if y % 2 == 0 else \
+                        '<section><strong><title>' + line + '</title></strong>\n'
+                else:
+                    str_line = '\t<strong><p>' + line + '</p></strong>\n' if y % 2 == 0 else \
+                        '\t</section>\n\t<section><strong><title>' + line + '</title></strong>\n'
                 y += 1
                 self.tmp.write(str_line)
             else:
-                self.tmp.write('<p>' + line + '</p>\n')
+                self.tmp.write('\t\t<p>' + line + '</p>\n')
         self.tmp.close()
-        tmp = open(grabber.tmp_file, 'r', encoding='utf-8').read()
-        fb2_head = open('head.txt', 'r', encoding='utf-8').read()
-        fb2 = open(grabber.fb2_file_out, 'w', encoding='utf-8')
-        fb2.write(TxtToFB2.Text_to_str_of_index(tmp, fb2_head, '</body>'))
-
+        tmp = open(grabber.tmp_file, 'r', encoding='utf-8')
+        tmp_str = tmp.read()
+        self.fb2.write(TxtToFB2.Text_to_str_of_index(tmp_str, self.fb2_head, '</body>'))
+        tmp.close()
+        os.remove(grabber.tmp_file)
 
 if __name__ == '__main__':
     at = AuthorTodayClass()
+#    grabber.url = at.Get_beginning_of_the_book()
+#    print('url - ', grabber.url)
+#    at.My_library()
     at.Grabber()
+'''
+'''

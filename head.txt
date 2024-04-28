@@ -25,7 +25,7 @@
         <home-page></home-page>
         <id></id>
       </author>
-      <date value=></date>
+      <date value=""></date>
       <id></id>
       <version>1.00</version>
     </document-info>
