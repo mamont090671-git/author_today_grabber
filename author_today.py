@@ -96,32 +96,6 @@ class AuthorTodayClass:
         global text_button
         global text_elem
         print('Load Book')
-        '''
-        title = driver0.title.split(',')
-        title0 = title[0][6:]
-#       title0 = title0[6:]
-        author = title[2][1:]
-        h = author.find(' читать онлайн')
-        author = author[:h]
-        print(title0)
-        print(author)
-        #    out_file.write(title + '\n')
-        '''
-        '''
-        #   TODO    открываем боковое меню
-        driver0.find_element(By.CSS_SELECTOR, 'button.btn.btn-brd.btn-with-icon.btn-only-icon-xs').click()
-        time.sleep(1)
-        #   TODO    Получаем автора
-        try:
-            author0 = driver0.find_element(By.CSS_SELECTOR, 'div.book-author a')
-            print(str(author0.text))
-        except IndexError as e:
-            #
-            print('Error: ', e)
-        #   TODO    Обновляем страницу
-        driver0.refresh()
-        time.sleep(2)
-        '''
         #   TODO    копируем книгу по главам в цикле
         ch = True
         while ch:
@@ -257,32 +231,3 @@ class TxtToFB2:
 if __name__ == '__main__':
     at = AuthorTodayClass()
     at.Grabber()
-'''
-def Test0(driver0=None):
-    global texts_nameBook
-    global elements
-    print('test')
-    try:
-        driver0.find_element(By.PARTIAL_LINK_TEXT, 'Моя библиотека').click()
-    except IndexError as e1:
-        print('Error: ', e1)
-    try:
-        elements = driver0.find_elements(By.CSS_SELECTOR, 'h4.bookcard-title')
-    except IndexError as e2:
-        print('Error: ', e2)
-    for element in elements:
-        text = element.text
-        s = driver0.find_element(By.LINK_TEXT, text)
-        s0 = str(s.get_attribute('href')).replace('work', 'reader')
-        #        print(text + ' - ', s0)
-        texts_nameBook[text] = s0
-    grabber.url = texts_nameBook['Легенда о Лазаре 9. Враг моего врага']
-    driver0.get(grabber.url)
-    driver0.find_element(By.CSS_SELECTOR, 'button.btn.btn-brd.btn-with-icon.btn-only-icon-xs').click()
-    time.sleep(2)
-    driver0.find_element(By.XPATH, '//li[text()="Глава 1"]').click()
-    cur_url = driver0.current_url
-    print(cur_url)
-
-    time.sleep(2)
-'''
